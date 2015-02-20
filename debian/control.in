@@ -1,0 +1,8 @@
+Package: inspircd
+Version: @VERSION@
+Section: net
+Priority: optional
+Architecture: @ARCHITECTURE@
+Maintainer: InspIRCd Development Team <noreply@inspircd.org>
+Description: InspIRCd - Internet Relay Chat Daemon
+Homepage: http://www.inspircd.org/

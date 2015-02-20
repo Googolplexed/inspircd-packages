@@ -22,6 +22,7 @@ REVISION   = ENV['INSPIRCD_REVISION'] || 'master'
 RUNASGROUP = ENV['INSPIRCD_GROUP']    || (Etc.getgrnam('irc').gid rescue Process.gid).to_s
 RUNASUSER  = ENV['INSPIRCD_USER']     || (Etc.getpwnam('irc').uid rescue Process.uid).to_s
 
+DEBIAN_DIRECTORY  = "#{__dir__}/debian"
 INSTALL_DIRECTORY = "#{__dir__}/install"
 SOURCE_DIRECTORY  = "#{__dir__}/source"
 
@@ -48,6 +49,16 @@ def fetch!
 	end
 end
 
+def template! source, target, variables
+	template = File.read source
+	variables.each do |key, value|
+		template.gsub! /@#{key}@/i, value
+	end
+	File.open target, 'w+' do |fh|
+		fh.write template
+	end
+end
+
 def get_version
 	unless defined? $VERSION
 		output = `#{SOURCE_DIRECTORY}/src/version.sh 2>/dev/null`.chomp
@@ -61,6 +72,33 @@ desc 'Purge all generated files'
 task :clean do
 	rm_rf SOURCE_DIRECTORY
 	execute! 'git', 'clean', '-dfx'
+end
+
+desc 'Generate a Debian DEB package'
+task :deb do
+	fetch!
+	compile!
+
+	mkdir_p "#{INSTALL_DIRECTORY}/etc/init.d"
+	mv "#{INSTALL_DIRECTORY}/var/lib/inspircd/inspircd", "#{INSTALL_DIRECTORY}/etc/init.d"
+
+	mkdir_p "#{INSTALL_DIRECTORY}/lib/systemd/system"
+	mv "#{INSTALL_DIRECTORY}/var/lib/inspircd/inspircd.service", "#{INSTALL_DIRECTORY}/lib/systemd/system"
+
+	chdir INSTALL_DIRECTORY do
+		execute! 'tar', 'cfz', "#{DEBIAN_DIRECTORY}/data.tar.gz", '.'
+	end
+
+	chdir DEBIAN_DIRECTORY do
+		architecture = `uname -p 2>/dev/null`.chomp
+		architecture.gsub! /^x86_64$/, 'amd64'
+
+		variables = { architecture: architecture, version: get_version }
+		template! "#{DEBIAN_DIRECTORY}/control.in", "#{DEBIAN_DIRECTORY}/control", variables
+
+		execute! 'tar', 'cfz', "#{DEBIAN_DIRECTORY}/control.tar.gz", 'control'
+		execute! 'ar', 'rc', "#{__dir__}/inspircd_#{get_version}_#{architecture}.deb", 'debian-binary', 'control.tar.gz', 'data.tar.gz'
+	end
 end
 
 task :default do

@@ -1,4 +1,6 @@
+/debian/control
 /install/
 /source/
 
-/*.gz
+*.deb
+*.gz
