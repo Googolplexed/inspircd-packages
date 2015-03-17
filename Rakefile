@@ -43,16 +43,8 @@ end
 
 def fetch!
 	chdir __dir__ do
-		if File.directory? SOURCE_DIRECTORY
-			chdir SOURCE_DIRECTORY do
-				execute! 'git', 'clean', '-dfx'
-				execute! 'git', 'reset', '--hard'
-				execute! 'git', 'fetch', '--all', '--force'
-				execute! 'git', 'checkout', REVISION
-			end
-		else
-			execute! 'git', 'clone', '--branch', REVISION, GIT, SOURCE_DIRECTORY
-		end
+		rm_rf SOURCE_DIRECTORY
+		execute! 'git', 'clone', '--branch', REVISION, '--depth', '1', GIT, SOURCE_DIRECTORY
 	end
 end
 
