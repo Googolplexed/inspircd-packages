@@ -19,8 +19,8 @@
 
 GIT        = ENV['INSPIRCD_GIT']      || 'git://github.com/inspircd/inspircd.git'
 REVISION   = ENV['INSPIRCD_REVISION'] || 'master'
-RUNASGROUP = ENV['INSPIRCD_GROUP']    || getgrnam('irc').gid rescue Process.gid.to_s
-RUNASUSER  = ENV['INSPIRCD_USER']     || getpwnam('irc').uid rescue Process.uid.to_s
+RUNASGROUP = ENV['INSPIRCD_GROUP']    || (Etc.getgrnam('irc').gid rescue Process.gid).to_s
+RUNASUSER  = ENV['INSPIRCD_USER']     || (Etc.getpwnam('irc').uid rescue Process.uid).to_s
 
 INSTALL_DIRECTORY = "#{__dir__}/install"
 SOURCE_DIRECTORY  = "#{__dir__}/source"
