@@ -23,6 +23,7 @@ RUNASGROUP = ENV['INSPIRCD_GROUP']    || (Etc.getgrnam('irc').gid rescue Process
 RUNASUSER  = ENV['INSPIRCD_USER']     || (Etc.getpwnam('irc').uid rescue Process.uid).to_s
 
 DEBIAN_DIRECTORY  = "#{__dir__}/debian"
+EXTRAS_DIRECTORY  = "#{__dir__}/extras"
 INSTALL_DIRECTORY = "#{__dir__}/install"
 SOURCE_DIRECTORY  = "#{__dir__}/source"
 
@@ -83,7 +84,11 @@ task :deb do
 	mv "#{INSTALL_DIRECTORY}/var/lib/inspircd/inspircd", "#{INSTALL_DIRECTORY}/etc/init.d"
 
 	mkdir_p "#{INSTALL_DIRECTORY}/lib/systemd/system"
-	mv "#{INSTALL_DIRECTORY}/var/lib/inspircd/inspircd.service", "#{INSTALL_DIRECTORY}/lib/systemd/system"
+	if get_version =~ /^2\.0\./
+		cp "#{EXTRAS_DIRECTORY}/inspircd.service", "#{INSTALL_DIRECTORY}/lib/systemd/system"
+	else
+		mv "#{INSTALL_DIRECTORY}/var/lib/inspircd/inspircd.service", "#{INSTALL_DIRECTORY}/lib/systemd/system"
+	end
 
 	chdir INSTALL_DIRECTORY do
 		execute! 'tar', 'cfz', "#{DEBIAN_DIRECTORY}/data.tar.gz", '.'
