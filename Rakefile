@@ -38,7 +38,7 @@ def compile!
 
 	chdir SOURCE_DIRECTORY do
 		ENV['DESTDIR'] = INSTALL_DIRECTORY
-		execute! './configure', '--system', '--gid', RUNASGROUP, '--uid', RUNASUSER
+		execute! './configure', '--development', '--system', '--gid', RUNASGROUP, '--uid', RUNASUSER
 		execute! 'make', "-j#{Rake::CpuCounter.count}", 'install'
 	end
 end
