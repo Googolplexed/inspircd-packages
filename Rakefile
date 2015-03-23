@@ -77,6 +77,8 @@ end
 
 desc 'Generate a Debian DEB package'
 task :deb do
+	require 'digest'
+
 	fetch!
 	compile!
 
@@ -92,6 +94,12 @@ task :deb do
 
 	chdir INSTALL_DIRECTORY do
 		execute! 'tar', 'cfz', "#{DEBIAN_DIRECTORY}/data.tar.gz", '.'
+
+		File.open "#{DEBIAN_DIRECTORY}/md5sums", 'w' do |fh|
+			Dir['**/**'].select { |file| File.file? file }.each do |file|
+				fh.puts "#{file} #{Digest::MD5.hexdigest File.read file}"
+			end
+		end
 	end
 
 	chdir DEBIAN_DIRECTORY do
@@ -101,7 +109,7 @@ task :deb do
 		variables = { architecture: architecture, version: get_version }
 		template! "#{DEBIAN_DIRECTORY}/control.in", "#{DEBIAN_DIRECTORY}/control", variables
 
-		execute! 'tar', 'cfz', "#{DEBIAN_DIRECTORY}/control.tar.gz", 'control'
+		execute! 'tar', 'cfz', "#{DEBIAN_DIRECTORY}/control.tar.gz", 'control', 'md5sums'
 		execute! 'ar', 'rc', "#{__dir__}/inspircd_#{get_version}_#{architecture}.deb", 'debian-binary', 'control.tar.gz', 'data.tar.gz'
 	end
 end
