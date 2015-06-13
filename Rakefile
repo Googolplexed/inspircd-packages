@@ -18,6 +18,7 @@
 
 
 GIT        = ENV['INSPIRCD_GIT']      || 'git://github.com/inspircd/inspircd.git'
+MODULES    = ENV['INSPIRCD_MODULES']  || 'regex_posix'
 REVISION   = ENV['INSPIRCD_REVISION'] || 'master'
 RUNASGROUP = ENV['INSPIRCD_GROUP']    || (Etc.getgrnam('irc').gid rescue Process.gid).to_s
 RUNASUSER  = ENV['INSPIRCD_USER']     || (Etc.getpwnam('irc').uid rescue Process.uid).to_s
@@ -38,6 +39,7 @@ def compile!
 
 	chdir SOURCE_DIRECTORY do
 		ENV['DESTDIR'] = INSTALL_DIRECTORY
+		execute! './configure', '--enable-extras', MODULES.split.map { |name| "m_#{name}.cpp" }.join(',')
 		execute! './configure', '--development', '--system', '--gid', RUNASGROUP, '--uid', RUNASUSER
 		execute! 'make', "-j#{Rake::CpuCounter.count}", 'install'
 	end
@@ -124,6 +126,7 @@ end
 desc 'Print settings collected from the environment.'
 task :environment do
 	puts "GIT        = #{GIT}"
+	puts "MODULES    = #{MODULES}"
 	puts "REVISION   = #{REVISION}"
 	puts "RUNASGROUP = #{RUNASGROUP}"
 	puts "RUNASUSER  = #{RUNASUSER}"
