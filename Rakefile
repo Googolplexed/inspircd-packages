@@ -39,7 +39,15 @@ def compile!
 
 	chdir SOURCE_DIRECTORY do
 		ENV['DESTDIR'] = INSTALL_DIRECTORY
-		execute! './configure', '--enable-extras', MODULES.split.map { |name| "m_#{name}.cpp" }.join(',')
+		MODULES.split.each do |name|
+			if File.file? "#{SOURCE_DIRECTORY}/src/modules/m_#{name}.cpp"
+				STDERR.puts "Warning: #{name} is built by default and does not need to be in INSPIRCD_MODULES!"
+			elsif File.file? "#{SOURCE_DIRECTORY}/src/modules/extra/m_#{name}.cpp"
+				execute! './configure', '--enable-extras', "m_#{name}.cpp"
+			else
+				execute! './modulemanager', 'install', "m_#{name}"
+			end
+		end
 		execute! './configure', '--development', '--system', '--gid', RUNASGROUP, '--uid', RUNASUSER
 		execute! 'make', "-j#{Rake::CpuCounter.count}", 'install'
 	end
