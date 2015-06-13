@@ -10,7 +10,10 @@ is nowhere near finished so you should probably not use it just yet. Poke me
 
 - Git
 - Rake
-- Ruby
+- Ruby 2.0+
+
+If you are using an old distribution which does not ship Ruby 2.0+ then you can
+install it with [RVM](http://rvm.io/rvm/install).
 
 ## Usage
 
