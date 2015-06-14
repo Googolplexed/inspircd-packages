@@ -18,6 +18,7 @@
 
 
 GIT        = ENV['INSPIRCD_GIT']      || 'git://github.com/inspircd/inspircd.git'
+MODULES    = ENV['INSPIRCD_MODULES']  || 'regex_posix'
 REVISION   = ENV['INSPIRCD_REVISION'] || 'master'
 RUNASGROUP = ENV['INSPIRCD_GROUP']    || (Etc.getgrnam('irc').gid rescue Process.gid).to_s
 RUNASUSER  = ENV['INSPIRCD_USER']     || (Etc.getpwnam('irc').uid rescue Process.uid).to_s
@@ -38,6 +39,15 @@ def compile!
 
 	chdir SOURCE_DIRECTORY do
 		ENV['DESTDIR'] = INSTALL_DIRECTORY
+		MODULES.split.each do |name|
+			if File.file? "#{SOURCE_DIRECTORY}/src/modules/m_#{name}.cpp"
+				STDERR.puts "Warning: #{name} is built by default and does not need to be in INSPIRCD_MODULES!"
+			elsif File.file? "#{SOURCE_DIRECTORY}/src/modules/extra/m_#{name}.cpp"
+				execute! './configure', '--enable-extras', "m_#{name}.cpp"
+			else
+				execute! './modulemanager', 'install', "m_#{name}"
+			end
+		end
 		execute! './configure', '--development', '--system', '--gid', RUNASGROUP, '--uid', RUNASUSER
 		execute! 'make', "-j#{Rake::CpuCounter.count}", 'install'
 	end
@@ -127,6 +137,7 @@ end
 desc 'Print settings collected from the environment.'
 task :environment do
 	puts "GIT        = #{GIT}"
+	puts "MODULES    = #{MODULES}"
 	puts "REVISION   = #{REVISION}"
 	puts "RUNASGROUP = #{RUNASGROUP}"
 	puts "RUNASUSER  = #{RUNASUSER}"
