@@ -47,6 +47,9 @@ def fetch!
 	chdir __dir__ do
 		rm_rf SOURCE_DIRECTORY
 		execute! 'git', 'clone', '--branch', REVISION, '--depth', '1', GIT, SOURCE_DIRECTORY
+                #Temporary hacky patch to replace the run script
+                execute! 'cp',"#{EXTRAS_DIRECTORY}/inspircd.init", "#{SOURCE_DIRECTORY}/make/template/inspircd"
+
 	end
 end
 
